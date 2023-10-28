@@ -27,6 +27,12 @@ export class User {
 
   @Prop({})
   verified_account: boolean;
+
+  @Prop({ required: true })
+  hashed_password: string;
+
+  @Prop({ required: true })
+  salt: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -8,6 +8,8 @@ export const WelcomeMail = async ({
   name: string;
 }) => {
   try {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
     const query = {
       to: to,
       from: process.env.FROM_EMAIL,
