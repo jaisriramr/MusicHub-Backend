@@ -58,7 +58,9 @@ export class UserController {
 
           await this.cacheManager
             .set(CreateUserDto.email, CreateUserDto, { ttl: 0 })
-            .then((response: any) => {});
+            .then((response: any) => {
+              console.log('reg ccc ', response);
+            });
 
           return { message: 'Successfully created account' };
         }
@@ -75,7 +77,7 @@ export class UserController {
   ) {
     try {
       const cacheUser: any = await this.cacheManager.get(email);
-
+      console.log('cc login ', cacheUser);
       if (cacheUser) {
         // check password with the cached one
         const compare = await bcrypt.compare(
@@ -130,7 +132,7 @@ export class UserController {
   async getProfile(@Query('email') email: string) {
     try {
       const cacheUser: any = await this.cacheManager.get(email);
-
+      console.log('ccc profile ', cacheUser);
       if (cacheUser) {
         cacheUser.hashed_password = undefined;
         cacheUser.salt = undefined;
