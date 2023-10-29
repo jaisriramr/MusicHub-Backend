@@ -15,12 +15,12 @@ import { UserModule } from './User/user.module';
       envFilePath: ['.env.development'],
       isGlobal: true,
     }),
-    CacheModule.register({
-      isGlobal: true,
-      store: redisStore,
-      host: 'localhost',
-      port: 6379,
-    }),
+    // CacheModule.register({
+    //   isGlobal: true,
+    //   store: redisStore,
+    //   host: 'localhost',
+    //   port: 6379,
+    // }),
     UserModule,
     MongooseModule.forRoot(process.env.MONGO_URI),
     JwtModule.register({
