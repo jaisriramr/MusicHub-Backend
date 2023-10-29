@@ -19,7 +19,7 @@ import { UserModule } from './User/user.module';
       isGlobal: true,
       store: redisStore,
       host: 'localhost',
-      port: 6379,
+      port: process.env.REDIS_PORT,
     }),
     UserModule,
     MongooseModule.forRoot(process.env.MONGO_URI),
