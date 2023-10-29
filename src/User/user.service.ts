@@ -22,7 +22,7 @@ export class UserService {
     return await this.UserModel.findOne({ email });
   }
 
-  async removeSingle(id: string) {
+  async delsingle(id: string) {
     return await this.UserModel.deleteOne({ _id: new Types.ObjectId(id) });
   }
 

@@ -187,7 +187,7 @@ export class UserController {
       if (user) {
         await this.cacheManager.del(user.email);
 
-        const deletedUser = await this.userService.removeSingle(id);
+        const deletedUser = await this.userService.delsingle(id);
 
         if (deletedUser.acknowledged) {
           return { message: 'User successfully deleted' };
