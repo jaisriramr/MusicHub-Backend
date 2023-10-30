@@ -9,6 +9,7 @@ import * as redisStore from 'cache-manager-redis-store';
 import { CacheModule } from '@nestjs/cache-manager';
 import { UserModule } from './User/user.module';
 import { TrackModule } from './Track/track.module';
+import { PlayListModule } from './Playlist/playlist.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TrackModule } from './Track/track.module';
       host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT,
     }),
+    PlayListModule,
     TrackModule,
     UserModule,
     MongooseModule.forRoot(process.env.MONGO_URI),

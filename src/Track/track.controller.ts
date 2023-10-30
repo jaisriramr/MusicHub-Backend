@@ -66,7 +66,9 @@ export class TrackController {
       };
 
       const response = await this.trackService.create(query);
-      await this.cacheManager.set(response._id.toString(), response);
+      await this.cacheManager.set(response._id.toString(), response, {
+        ttl: 0,
+      });
       return { message: 'Track successfully uploaded!', data: response };
     } catch (err) {
       console.log('eee ', err);
@@ -84,7 +86,7 @@ export class TrackController {
       } else {
         const track = await this.trackService.getTrackById(id);
         if (track) {
-          await this.cacheManager.set(id, track);
+          await this.cacheManager.set(id, track, { ttl: 0 });
           return { message: 'Track fetched successfully', data: track };
         } else {
           throw new NotFoundException('No such track found');
@@ -128,7 +130,9 @@ export class TrackController {
         const track = await this.trackService.getTrackById(
           updateTrackDto._id.toString(),
         );
-        this.cacheManager.set(updateTrackDto._id.toString(), track);
+        await this.cacheManager.set(updateTrackDto._id.toString(), track, {
+          ttl: 0,
+        });
         return { message: 'Track updated successfully', data: track };
       } else {
         throw new HttpException('Internal Server Error', 500);
@@ -141,6 +145,7 @@ export class TrackController {
   @Delete('remove/:id')
   async removeTrack(@Param('id') id: string) {
     try {
+      await this.cacheManager.del(id);
       return await this.trackService.removeTrack(id);
     } catch (err) {
       throw new HttpException(err, 500);
