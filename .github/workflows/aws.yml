@@ -1,0 +1,24 @@
+name: Deploy to Amazon EC2
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  Deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy in EC2
+        env:
+            PRIVATE_KEY: ${{ secrets.AWS_PRIVATE_KEY  }}
+            HOSTNAME : ${{ secrets.HOSTNAME }}
+            USERNAME : ${{ secrets.USERNAME }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USERNAME}@${HOSTNAME} '
+            cd /app/musichub-engine &&
+            git checkout dev &&
+            git fetch --all &&
+            git pull origin dev && cd .. && docker-compose up -d --build
+          '
