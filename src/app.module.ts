@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import * as redisStore from 'cache-manager-redis-store';
 import { CacheModule } from '@nestjs/cache-manager';
 import { UserModule } from './User/user.module';
+import { TrackModule } from './Track/track.module';
 
 @Module({
   imports: [
@@ -18,9 +19,10 @@ import { UserModule } from './User/user.module';
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
-      host: 'redis-container',
+      host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT,
     }),
+    TrackModule,
     UserModule,
     MongooseModule.forRoot(process.env.MONGO_URI),
     JwtModule.register({
