@@ -18,7 +18,7 @@ import { UserModule } from './User/user.module';
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
-      host: 'localhost',
+      host: 'redis',
       port: process.env.REDIS_PORT,
     }),
     UserModule,
