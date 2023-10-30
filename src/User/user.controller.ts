@@ -15,7 +15,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './Dto/create.user.dto';
 import * as bcrypt from 'bcrypt';
-import { WelcomeMail } from 'src/Utils/mail';
+import { ForgotPasswordLinkMail, WelcomeMail } from 'src/Utils/mail';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { JwtService } from '@nestjs/jwt';
@@ -58,7 +58,9 @@ export class UserController {
 
           await this.cacheManager
             .set(CreateUserDto.email, CreateUserDto, { ttl: 0 })
-            .then((response: any) => {});
+            .then((response: any) => {
+              console.log('reg ccc ', response);
+            });
 
           return { message: 'Successfully created account' };
         }
@@ -75,7 +77,7 @@ export class UserController {
   ) {
     try {
       const cacheUser: any = await this.cacheManager.get(email);
-
+      console.log('cc login ', cacheUser);
       if (cacheUser) {
         // check password with the cached one
         const compare = await bcrypt.compare(
@@ -130,7 +132,7 @@ export class UserController {
   async getProfile(@Query('email') email: string) {
     try {
       const cacheUser: any = await this.cacheManager.get(email);
-
+      console.log('ccc profile ', cacheUser);
       if (cacheUser) {
         cacheUser.hashed_password = undefined;
         cacheUser.salt = undefined;
@@ -187,7 +189,7 @@ export class UserController {
       if (user) {
         await this.cacheManager.del(user.email);
 
-        const deletedUser = await this.userService.removeSingle(id);
+        const deletedUser = await this.userService.dsingle(id);
 
         if (deletedUser.acknowledged) {
           return { message: 'User successfully deleted' };
@@ -196,6 +198,91 @@ export class UserController {
         }
       } else {
         throw new NotFoundException('No User Found');
+      }
+    } catch (err) {
+      throw new HttpException(err, 500);
+    }
+  }
+
+  @Get('forgot-password')
+  async forgotPassword(@Query('email') email: string) {
+    try {
+      let user: any;
+
+      const cachedUser = await this.cacheManager.get(email);
+
+      if (cachedUser) {
+        user = cachedUser;
+      } else {
+        user = await this.userService.findUserViaEmail(email);
+      }
+
+      if (user) {
+        user.hashed_password = undefined;
+        user.salt = undefined;
+
+        const token = this.jwtService.sign(
+          { user },
+          {
+            expiresIn: '10m',
+            secret: process.env.JWT_SECRET,
+          },
+        );
+
+        const response = await ForgotPasswordLinkMail({
+          to: user.email,
+          name: user.name,
+          token,
+        })
+          .then((resppp) => {
+            console.log('DDD ', resppp);
+            return 'Reset password link has been sent to you email ID';
+          })
+          .catch((err) => {
+            console.log(err);
+            throw new HttpException(err, 500);
+          });
+
+        return response;
+      } else {
+        throw new NotFoundException('Email ID does not exist');
+      }
+    } catch (err) {
+      console.log(err);
+      throw new HttpException(err, 500);
+    }
+  }
+
+  @Put('reset-password')
+  async resetPassword(
+    @Body('password') password: string,
+    @Body('token') token: string,
+  ) {
+    try {
+      const validated = await this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      if (validated) {
+        const salt = await bcrypt.genSaltSync();
+        const hash = await bcrypt.hashSync(password, salt);
+
+        const decode: any = await this.jwtService.decode(token);
+
+        let user = decode.user;
+        user.updatedAt = new Date().toISOString();
+
+        Object.assign(user, { hashed_password: hash, salt });
+
+        const response = await this.userService
+          .update(user)
+          .then((resss) => {
+            this.cacheManager.set(user.email, user);
+            return resss;
+          })
+          .catch((err) => console.log('EEERR ', err));
+
+        return response;
       }
     } catch (err) {
       throw new HttpException(err, 500);

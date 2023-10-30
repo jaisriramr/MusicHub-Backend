@@ -18,8 +18,8 @@ import { UserModule } from './User/user.module';
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
-      host: 'localhost',
-      port: 6379,
+      host: 'redis',
+      port: process.env.REDIS_PORT,
     }),
     UserModule,
     MongooseModule.forRoot(process.env.MONGO_URI),
