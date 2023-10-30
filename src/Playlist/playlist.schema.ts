@@ -9,6 +9,9 @@ export class Playlist {
   user_id: Types.ObjectId;
 
   @Prop({ required: true })
+  name: string;
+
+  @Prop({})
   description: string;
 
   @Prop({ required: true })
@@ -16,6 +19,9 @@ export class Playlist {
 
   @Prop({ required: true })
   track_ids: Array<any>[];
+
+  @Prop({ required: true })
+  type: string; // album or likes songs or playlist
 }
 
 export const PlaylistSchema = SchemaFactory.createForClass(Playlist);

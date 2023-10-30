@@ -12,7 +12,10 @@ export class updatePlaylistDto {
   user_id: Types.ObjectId;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Playlist description is required' })
+  @IsNotEmpty({ message: 'Playlist name is required' })
+  name: string;
+
+  @ApiProperty()
   description: string;
 
   @ApiProperty()
@@ -22,4 +25,8 @@ export class updatePlaylistDto {
   @ApiProperty()
   @IsNotEmpty({ message: 'Atlest one track id is required' })
   track_ids: Array<any>[];
+
+  @ApiProperty()
+  @IsNotEmpty({ message: 'Playlist type is required' })
+  type: string;
 }
