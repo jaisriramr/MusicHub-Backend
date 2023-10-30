@@ -27,9 +27,11 @@ export class UserService {
   }
 
   async update(userUpdateDto: UpdateUserDto) {
-    return await this.UserModel.updateOne({
-      _id: new Types.ObjectId(userUpdateDto._id),
-      userUpdateDto,
-    });
+    return await this.UserModel.updateOne(
+      {
+        _id: new Types.ObjectId(userUpdateDto._id),
+      },
+      { userUpdateDto },
+    );
   }
 }
