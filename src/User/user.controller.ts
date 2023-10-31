@@ -11,6 +11,7 @@ import {
   Put,
   Query,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './Dto/create.user.dto';
@@ -20,6 +21,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { JwtService } from '@nestjs/jwt';
 import { UpdateUserDto } from './Dto/update.user.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -156,6 +158,7 @@ export class UserController {
   }
 
   @Put('update')
+  @UseGuards(AuthGuard)
   async updateProfile(@Body() updateUserDto: UpdateUserDto) {
     try {
       const user: any = await this.userService.findUserViaEmail(
@@ -182,6 +185,7 @@ export class UserController {
   }
 
   @Delete('remove:id')
+  @UseGuards(AuthGuard)
   async removeUser(@Param('id') id: string) {
     try {
       const user = await this.userService.readSingle(id);

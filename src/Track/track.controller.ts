@@ -11,6 +11,7 @@ import {
   Put,
   UploadedFile,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
@@ -26,6 +27,7 @@ import { S3Service } from 'src/Utils/S3.service';
 import { Cache } from 'cache-manager';
 import { Types } from 'mongoose';
 import { UpdateTrackDto } from './Dto/update.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('track')
 export class TrackController {
@@ -37,6 +39,7 @@ export class TrackController {
   ) {}
 
   @Post('upload')
+  @UseGuards(AuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'file', maxCount: 1 },
@@ -98,6 +101,7 @@ export class TrackController {
   }
 
   @Put('update')
+  @UseGuards(AuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'file', maxCount: 1 },
@@ -143,6 +147,7 @@ export class TrackController {
   }
 
   @Delete('remove/:id')
+  @UseGuards(AuthGuard)
   async removeTrack(@Param('id') id: string) {
     try {
       await this.cacheManager.del(id);

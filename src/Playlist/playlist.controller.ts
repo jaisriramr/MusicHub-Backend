@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { PlaylistService } from './playlist.service';
@@ -20,6 +21,7 @@ import { S3Service } from 'src/Utils/S3.service';
 import { CreatePlaylistDto } from './Dto/create.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { updatePlaylistDto } from './Dto/update.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('playlist')
 export class PlaylistController {
@@ -31,6 +33,7 @@ export class PlaylistController {
   ) {}
 
   @Post('create')
+  @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async createPlaylist(
     @Body() createPlaylistDto: CreatePlaylistDto,
@@ -82,6 +85,7 @@ export class PlaylistController {
   }
 
   @Put('update')
+  @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async updatePlaylist(
     @Body() updatePlaylistDto: updatePlaylistDto,
@@ -113,6 +117,7 @@ export class PlaylistController {
   }
 
   @Delete('remove/:id')
+  @UseGuards(AuthGuard)
   async removePlaylist(@Param('id') id: string) {
     try {
       const cachedData = await this.cacheManager.get(id);

@@ -9,10 +9,12 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CollectionService } from './collection.service';
 import { Types } from 'mongoose';
 import { UpdateCollectionDto } from './Dto/update.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 export interface playlist_id {
   id: Types.ObjectId;
@@ -28,6 +30,7 @@ export class CollectionController {
   constructor(private readonly collectionService: CollectionService) {}
 
   @Post('create')
+  @UseGuards(AuthGuard)
   async createCollection(@Body() createCollectionDto: CreateCollectionDto) {
     try {
       await createCollectionDto.collection.forEach(async (col: any, i: any) => {
@@ -63,6 +66,7 @@ export class CollectionController {
   }
 
   @Put('update')
+  @UseGuards(AuthGuard)
   async updateCollection(@Body() updateCollectionDto: UpdateCollectionDto) {
     try {
       return await this.collectionService.updateCollection(updateCollectionDto);
@@ -72,6 +76,7 @@ export class CollectionController {
   }
 
   @Delete('remove/:id')
+  @UseGuards(AuthGuard)
   async removeCollection(@Param('id') id: string) {
     try {
       return await this.collectionService.removeCollection(id);
