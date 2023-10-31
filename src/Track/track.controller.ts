@@ -33,7 +33,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 export class TrackController {
   constructor(
     private readonly trackService: TrackService,
-    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly jwtService: JwtService,
     private readonly s3Service: S3Service,
   ) {}
@@ -69,9 +69,9 @@ export class TrackController {
       };
 
       const response = await this.trackService.create(query);
-      // await this.cacheManager.set(response._id.toString(), response, {
-      //   ttl: 0,
-      // });
+      await this.cacheManager.set(response._id.toString(), response, {
+        ttl: 0,
+      });
       return { message: 'Track successfully uploaded!', data: response };
     } catch (err) {
       console.log('eee ', err);
@@ -82,20 +82,19 @@ export class TrackController {
   @Get('read/:id')
   async readTrack(@Param('id') id: string) {
     try {
-      // const cachedTrack = await this.cacheManager.get(id);
+      const cachedTrack = await this.cacheManager.get(id);
 
-      // if (cachedTrack) {
-      //   return { message: 'Track fetched successfully', data: cachedTrack };
-      // } else {
-
-      const track = await this.trackService.getTrackById(id);
-      if (track) {
-        // await this.cacheManager.set(id, track, { ttl: 0 });
-        return { message: 'Track fetched successfully', data: track };
+      if (cachedTrack) {
+        return { message: 'Track fetched successfully', data: cachedTrack };
       } else {
-        throw new NotFoundException('No such track found');
+        const track = await this.trackService.getTrackById(id);
+        if (track) {
+          await this.cacheManager.set(id, track, { ttl: 0 });
+          return { message: 'Track fetched successfully', data: track };
+        } else {
+          throw new NotFoundException('No such track found');
+        }
       }
-      // }
     } catch (err) {
       throw new HttpException(err, 500);
     }
@@ -135,9 +134,9 @@ export class TrackController {
         const track = await this.trackService.getTrackById(
           updateTrackDto._id.toString(),
         );
-        // await this.cacheManager.set(updateTrackDto._id.toString(), track, {
-        //   ttl: 0,
-        // });
+        await this.cacheManager.set(updateTrackDto._id.toString(), track, {
+          ttl: 0,
+        });
         return { message: 'Track updated successfully', data: track };
       } else {
         throw new HttpException('Internal Server Error', 500);
@@ -151,7 +150,7 @@ export class TrackController {
   @UseGuards(AuthGuard)
   async removeTrack(@Param('id') id: string) {
     try {
-      // await this.cacheManager.del(id);
+      await this.cacheManager.del(id);
       return await this.trackService.removeTrack(id);
     } catch (err) {
       throw new HttpException(err, 500);
