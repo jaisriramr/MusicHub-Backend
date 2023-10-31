@@ -157,6 +157,19 @@ export class UserController {
     }
   }
 
+  @Get('verify')
+  async verifyToken(@Query('token') token: string) {
+    try {
+      const validation = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      return { validation };
+    } catch (err) {
+      throw new HttpException(err, 500);
+    }
+  }
+
   @Put('update')
   @UseGuards(AuthGuard)
   async updateProfile(@Body() updateUserDto: UpdateUserDto) {
