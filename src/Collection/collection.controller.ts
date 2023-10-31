@@ -59,7 +59,7 @@ export class CollectionController {
   @Get('list')
   async ListCollection(@Query('limit') limit: number) {
     try {
-      return await this.collectionService.listAll(limit ? limit : 10);
+      return await this.collectionService.listAll(limit ? Number(limit) : 10);
     } catch (err) {
       throw new HttpException(err, 500);
     }
