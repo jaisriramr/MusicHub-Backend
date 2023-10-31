@@ -10,6 +10,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { UserModule } from './User/user.module';
 import { TrackModule } from './Track/track.module';
 import { PlayListModule } from './Playlist/playlist.module';
+import { SearchModule } from './Search/search.module';
+import { CollectionModule } from './Collection/collection.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { PlayListModule } from './Playlist/playlist.module';
       host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT,
     }),
+    CollectionModule,
+    SearchModule,
     PlayListModule,
     TrackModule,
     UserModule,
