@@ -27,7 +27,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 export class PlaylistController {
   constructor(
     private readonly playlistService: PlaylistService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly jwtService: JwtService,
     private readonly s3Service: S3Service,
   ) {}
@@ -47,7 +47,7 @@ export class PlaylistController {
       });
 
       const response = await this.playlistService.create(createPlaylistDto);
-      this.cacheManager.set(response._id.toString(), response, { ttl: 0 });
+      // this.cacheManager.set(response._id.toString(), response, { ttl: 0 });
 
       return response;
     } catch (err) {
@@ -58,18 +58,19 @@ export class PlaylistController {
   @Get('read/:id')
   async readSinglePlaylist(@Param('id') id: string) {
     try {
-      const cachedData = await this.cacheManager.get(id);
-      if (cachedData) {
-        return cachedData;
+      // const cachedData = await this.cacheManager.get(id);
+      // if (cachedData) {
+      //   return cachedData;
+      // } else {
+
+      const response = await this.playlistService.readByID(id);
+      if (response) {
+        // this.cacheManager.set(id, response, { ttl: 0 }); // ttl in seconds
+        return response;
       } else {
-        const response = await this.playlistService.readByID(id);
-        if (response) {
-          this.cacheManager.set(id, response, { ttl: 0 }); // ttl in seconds
-          return response;
-        } else {
-          throw new NotFoundException('Playlist is not found');
-        }
+        throw new NotFoundException('Playlist is not found');
       }
+      // }
     } catch (err) {
       throw new HttpException(err, 500);
     }
@@ -105,9 +106,9 @@ export class PlaylistController {
         const playlist = await this.playlistService.readByID(
           updatePlaylistDto._id.toString(),
         );
-        this.cacheManager.set(updatePlaylistDto._id.toString(), playlist, {
-          ttl: 0,
-        });
+        // this.cacheManager.set(updatePlaylistDto._id.toString(), playlist, {
+        //   ttl: 0,
+        // });
       }
 
       return { message: 'Playlist updated successfully', data: response };
@@ -120,26 +121,27 @@ export class PlaylistController {
   @UseGuards(AuthGuard)
   async removePlaylist(@Param('id') id: string) {
     try {
-      const cachedData = await this.cacheManager.get(id);
+      // const cachedData = await this.cacheManager.get(id);
 
-      this.cacheManager.del(id);
-      if (cachedData) {
+      // this.cacheManager.del(id);
+      // if (cachedData) {
+      //   const deleteResult = await this.playlistService.removePlaylist(id);
+      //   return {
+      //     message: 'Removed the playlist successfully',
+      //     data: deleteResult,
+      //   };
+      // } else {
+
+      const playlist = await this.playlistService.readByID(id);
+
+      if (playlist) {
         const deleteResult = await this.playlistService.removePlaylist(id);
         return {
           message: 'Removed the playlist successfully',
           data: deleteResult,
         };
-      } else {
-        const playlist = await this.playlistService.readByID(id);
-
-        if (playlist) {
-          const deleteResult = await this.playlistService.removePlaylist(id);
-          return {
-            message: 'Removed the playlist successfully',
-            data: deleteResult,
-          };
-        }
       }
+      // }
     } catch (err) {
       throw new HttpException(err, 500);
     }

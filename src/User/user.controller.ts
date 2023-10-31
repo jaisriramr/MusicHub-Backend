@@ -27,7 +27,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -58,11 +58,11 @@ export class UserController {
             name: CreateUserDto.name,
           });
 
-          await this.cacheManager
-            .set(CreateUserDto.email, CreateUserDto, { ttl: 0 })
-            .then((response: any) => {
-              console.log('reg ccc ', response);
-            });
+          // await this.cacheManager
+          //   .set(CreateUserDto.email, CreateUserDto, { ttl: 0 })
+          //   .then((response: any) => {
+          //     console.log('reg ccc ', response);
+          //   });
 
           return { message: 'Successfully created account' };
         }
@@ -78,53 +78,54 @@ export class UserController {
     @Body('password') password: string,
   ) {
     try {
-      const cacheUser: any = await this.cacheManager.get(email);
-      console.log('cc login ', cacheUser);
-      if (cacheUser) {
-        // check password with the cached one
-        const compare = await bcrypt.compare(
-          password,
-          cacheUser.hashed_password,
-        );
+      // const cacheUser: any = await this.cacheManager.get(email);
+      // console.log('cc login ', cacheUser);
+      // if (cacheUser) {
+      //   // check password with the cached one
+      //   const compare = await bcrypt.compare(
+      //     password,
+      //     cacheUser.hashed_password,
+      //   );
 
+      //   if (compare) {
+      //     cacheUser.salt = undefined;
+      //     cacheUser.hashed_password = undefined;
+
+      //     const token = await this.jwtService.sign(cacheUser, {
+      //       secret: process.env.JWT_SECRET,
+      //       expiresIn: '1d',
+      //     });
+
+      //     return { token };
+      //   } else {
+      //     throw new UnauthorizedException('Password Incorrect');
+      //   }
+      // } else {
+
+      let user: any = await this.userService.findUserViaEmail(email);
+
+      if (user) {
+        const compare = await bcrypt.compare(password, user.hashed_password);
         if (compare) {
-          cacheUser.salt = undefined;
-          cacheUser.hashed_password = undefined;
+          user.hashed_password = undefined;
+          user.salt = undefined;
 
-          const token = await this.jwtService.sign(cacheUser, {
-            secret: process.env.JWT_SECRET,
-            expiresIn: '1d',
-          });
+          const token = await this.jwtService.sign(
+            { user },
+            {
+              secret: process.env.JWT_SECRET,
+              expiresIn: '1d',
+            },
+          );
 
           return { token };
         } else {
           throw new UnauthorizedException('Password Incorrect');
         }
       } else {
-        let user: any = await this.userService.findUserViaEmail(email);
-
-        if (user) {
-          const compare = await bcrypt.compare(password, user.hashed_password);
-          if (compare) {
-            user.hashed_password = undefined;
-            user.salt = undefined;
-
-            const token = await this.jwtService.sign(
-              { user },
-              {
-                secret: process.env.JWT_SECRET,
-                expiresIn: '1d',
-              },
-            );
-
-            return { token };
-          } else {
-            throw new UnauthorizedException('Password Incorrect');
-          }
-        } else {
-          throw new NotFoundException('Email does not exist!');
-        }
+        throw new NotFoundException('Email does not exist!');
       }
+      // }
     } catch (err) {
       throw new HttpException(err, 500);
     }
@@ -133,25 +134,26 @@ export class UserController {
   @Get('profile')
   async getProfile(@Query('email') email: string) {
     try {
-      const cacheUser: any = await this.cacheManager.get(email);
-      console.log('ccc profile ', cacheUser);
-      if (cacheUser) {
-        cacheUser.hashed_password = undefined;
-        cacheUser.salt = undefined;
+      // const cacheUser: any = await this.cacheManager.get(email);
+      // console.log('ccc profile ', cacheUser);
+      // if (cacheUser) {
+      //   cacheUser.hashed_password = undefined;
+      //   cacheUser.salt = undefined;
 
-        return { cacheUser };
+      //   return { cacheUser };
+      // } else {
+
+      const user = await this.userService.findUserViaEmail(email);
+
+      if (user) {
+        user.hashed_password = undefined;
+        user.salt = undefined;
+
+        return user;
       } else {
-        const user = await this.userService.findUserViaEmail(email);
-
-        if (user) {
-          user.hashed_password = undefined;
-          user.salt = undefined;
-
-          return user;
-        } else {
-          throw new NotFoundException('Email ID does not exist');
-        }
+        throw new NotFoundException('Email ID does not exist');
       }
+      // }
     } catch (err) {
       throw new HttpException(err, 500);
     }
@@ -186,7 +188,7 @@ export class UserController {
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         });
-        this.cacheManager.set(updateUserDto.email, updateUserDto, { ttl: 0 });
+        // this.cacheManager.set(updateUserDto.email, updateUserDto, { ttl: 0 });
 
         return { userUpdateResponse };
       } else {
@@ -204,7 +206,7 @@ export class UserController {
       const user = await this.userService.readSingle(id);
 
       if (user) {
-        await this.cacheManager.del(user.email);
+        // await this.cacheManager.del(user.email);
 
         const deletedUser = await this.userService.dsingle(id);
 
@@ -226,13 +228,14 @@ export class UserController {
     try {
       let user: any;
 
-      const cachedUser = await this.cacheManager.get(email);
+      // const cachedUser = await this.cacheManager.get(email);
 
-      if (cachedUser) {
-        user = cachedUser;
-      } else {
-        user = await this.userService.findUserViaEmail(email);
-      }
+      // if (cachedUser) {
+      //   user = cachedUser;
+      // } else {
+
+      user = await this.userService.findUserViaEmail(email);
+      // }
 
       if (user) {
         user.hashed_password = undefined;
@@ -294,7 +297,7 @@ export class UserController {
         const response = await this.userService
           .update(user)
           .then((resss) => {
-            this.cacheManager.set(user.email, user);
+            // this.cacheManager.set(user.email, user);
             return resss;
           })
           .catch((err) => console.log('EEERR ', err));
