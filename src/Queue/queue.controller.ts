@@ -4,16 +4,22 @@ import {
   Delete,
   Get,
   HttpException,
+  Inject,
   Param,
   Post,
   Put,
 } from '@nestjs/common';
 import { QueueService } from './queue.service';
 import { Types } from 'mongoose';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Controller('queue')
 export class QueueController {
-  constructor(private readonly queueService: QueueService) {}
+  constructor(
+    private readonly queueService: QueueService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Post('create')
   async create(
@@ -26,7 +32,9 @@ export class QueueController {
         track_queue,
       };
 
-      return await this.queueService.create(query);
+      const response = await this.queueService.create(query);
+      this.cacheManager.set(response._id, response);
+      return response;
     } catch (err) {
       throw new HttpException(err, 500);
     }
@@ -45,7 +53,10 @@ export class QueueController {
         track_queue,
       };
 
-      return await this.queueService.update(query);
+      const response = await this.queueService.update(query);
+
+      this.cacheManager.set(_id, query);
+      return response;
     } catch (err) {
       throw new HttpException(err, 500);
     }
@@ -54,7 +65,15 @@ export class QueueController {
   @Get('read/:id')
   async read(@Param('id') id: string) {
     try {
-      return await this.queueService.GetUserQueue(id);
+      const cachedData = this.cacheManager.get(id);
+
+      if (cachedData) {
+        return cachedData;
+      } else {
+        const response = await this.queueService.GetUserQueue(id);
+        this.cacheManager.set(response._id, response);
+        return response;
+      }
     } catch (err) {
       throw new HttpException(err, 500);
     }
@@ -63,6 +82,7 @@ export class QueueController {
   @Delete('remove/:id')
   async remove(@Param('id') id: string) {
     try {
+      this.cacheManager.del(id);
       return await this.queueService.removeQueue(id);
     } catch (err) {
       throw new HttpException(err, 500);
