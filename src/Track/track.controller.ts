@@ -82,18 +82,12 @@ export class TrackController {
   @Get('read/:id')
   async readTrack(@Param('id') id: string) {
     try {
-      const cachedTrack = await this.cacheManager.get(id);
-
-      if (cachedTrack) {
-        return { message: 'Track fetched successfully', data: cachedTrack };
+      const track = await this.trackService.getTrackById(id);
+      if (track) {
+        await this.cacheManager.set(id, track, { ttl: 0 });
+        return { message: 'Track fetched successfully', data: track };
       } else {
-        const track = await this.trackService.getTrackById(id);
-        if (track) {
-          await this.cacheManager.set(id, track, { ttl: 0 });
-          return { message: 'Track fetched successfully', data: track };
-        } else {
-          throw new NotFoundException('No such track found');
-        }
+        throw new NotFoundException('No such track found');
       }
     } catch (err) {
       throw new HttpException(err, 500);

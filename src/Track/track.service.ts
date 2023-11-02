@@ -17,7 +17,40 @@ export class TrackService {
   }
 
   async getTrackById(id: string) {
-    return await this.TrackModel.findOne({ _id: new Types.ObjectId(id) });
+    const pipeline = [
+      {
+        $match: {
+          _id: new Types.ObjectId(id),
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'artist',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          user_id: 1,
+          name: 1,
+          lyric: 1,
+          track_url: 1,
+          track_time: 1,
+          listener_count: 1,
+          track_image_url: 1,
+          track_type: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          'artist.name': 1,
+          'artist.profile_picture_url': 1,
+        },
+      },
+    ];
+    // return await this.TrackModel.findOne({ _id: new Types.ObjectId(id) });
+    return await this.TrackModel.aggregate(pipeline);
   }
 
   async updateOne(UpdateTrackDto: UpdateTrackDto) {
